@@ -100,8 +100,8 @@ import com.qualcomm.robotcore.util.Range;
 public class odometryMethod extends LinearOpMode {
 
     //odometry constants (tune these)
-    double L = 9.5;   //distance between left and right odometers (in inches)
-    double B = -1.5;   //distance from center of left/right encoders to the perpendicular encoder (in inches)
+    double L = 9.5356;   //distance between left and right odometers (in inches)
+    double B = -1.8;   //distance from center of left/right encoders to the perpendicular encoder (in inches)
     double R = .9869;   //wheel radius (in inches)
     double N = 8192;  //encoder ticks per revoluton
     double inPerTick = 2.0 * Math.PI * R / N;
@@ -141,7 +141,7 @@ public class odometryMethod extends LinearOpMode {
 
         //record a new encoder reading this loop
         currentRightPos = -odometers[0].getCurrentPosition();
-        currentLeftPos = -odometers[1].getCurrentPosition();
+        currentLeftPos = odometers[1].getCurrentPosition();
         currentPerpendicularPos = -odometers[2].getCurrentPosition();
 
         //find the delta encoder values of each encoder
@@ -210,10 +210,10 @@ public class odometryMethod extends LinearOpMode {
      * https://www.youtube.com/watch?v=3l7ZNJ21wMo (5 parts)
      * the code below uses the code explains in parts 1 & 2
      */
-    public void goToPos(DcMotor[] odometers, double x, double y, double finalAngle, double moveSpeed, double turnSpeed, double moveAccuracy, double angleAccuracy, double followAngle)
+    public void goToPos(DcMotor[] odometers, DcMotor[] drive, double x, double y, double finalAngle, double moveSpeed, double turnSpeed, double moveAccuracy, double angleAccuracy, double followAngle)
     {
         //bring in the encoder and motor objects
-        odometryRobotHardware robot = new odometryRobotHardware(hardwareMap);
+        //odometryRobotHardware robot = new odometryRobotHardware(hardwareMap);
 
         //while loop makes the code keep running till the desired location is reached. (within the accuracy constraints)
         while(Math.abs(x-GlobalX) > moveAccuracy || Math.abs(y-GlobalY) > moveAccuracy || Math.abs(finalAngle - GlobalHeading) > angleAccuracy) {
@@ -232,8 +232,8 @@ public class odometryMethod extends LinearOpMode {
             double slowDown = Range.clip(distanceToTarget / 5, -1, 1);
 
             //calculate the vector powers for the mecanum math
-            double movementXpower = (reletiveXToTarget / (Math.abs(reletiveXToTarget) + Math.abs(reletiveYToTarget))) * moveSpeed * slowDown;
-            double movementYpower = (reletiveYToTarget / (Math.abs(reletiveYToTarget) + Math.abs(reletiveXToTarget))) * moveSpeed * slowDown;
+            double movementXpower = (reletiveXToTarget / (Math.abs(reletiveXToTarget) + Math.abs(reletiveYToTarget))) * moveSpeed;// * slowDown;
+            double movementYpower = (reletiveYToTarget / (Math.abs(reletiveYToTarget) + Math.abs(reletiveXToTarget))) * moveSpeed;// * slowDown;
 
             //when far away from the target the robot will point at the target to get there faster.
             //at the end of the movement the robot will begin moving toward the desired final angle
@@ -246,17 +246,22 @@ public class odometryMethod extends LinearOpMode {
             }
 
             //set the motors to the correct powers to move toward the target
-            robot.motorRF.setPower((-movementXpower - movementYpower) - (-movementTurnPower));
-            robot.motorRB.setPower(-(-movementYpower + movementXpower) - (-movementTurnPower));
-            robot.motorLB.setPower(-(movementXpower + movementYpower) - (-movementTurnPower));
-            robot.motorLF.setPower(-(-movementYpower + movementXpower) - (movementTurnPower));
+            drive[0].setPower(((movementXpower - movementYpower) - (-movementTurnPower)));
+            drive[1].setPower((-(-movementYpower - movementXpower) - (-movementTurnPower)));
+            drive[2].setPower(-((-movementXpower + movementYpower) - (-movementTurnPower)));
+            drive[3].setPower(-(-movementYpower - movementXpower) - (movementTurnPower));
+
+            telemetry.addData("X", GlobalX);
+            telemetry.addData("Y", GlobalY);
+            telemetry.addData("H", GlobalHeading);
+            telemetry.update();
         }
 
         //at the end of the movement stop the motors
-        robot.motorRF.setPower(0);
-        robot.motorRB.setPower(0);
-        robot.motorLB.setPower(0);
-        robot.motorLF.setPower(0);
+        drive[0].setPower(0);
+        drive[1].setPower(0);
+        drive[2].setPower(0);
+        drive[3].setPower(0);
 
     }
 

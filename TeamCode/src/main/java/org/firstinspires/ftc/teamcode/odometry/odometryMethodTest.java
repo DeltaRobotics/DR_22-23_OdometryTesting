@@ -41,7 +41,17 @@ public class odometryMethodTest extends LinearOpMode{
             odometers[2] = robot.perpendicularEncoder;
         }
 
+        DcMotor[] drive = new DcMotor[4];
+        {
+            drive[0] = robot.motorRF;
+            drive[1] = robot.motorRB;
+            drive[2] = robot.motorLB;
+            drive[3] = robot.motorLF;
+        }
+
         waitForStart();
+
+        odometry.goToPos(odometers, drive, 5, 0, 0, .15, .15, 1, 5, 0);
 
         while (opModeIsActive()) {
 

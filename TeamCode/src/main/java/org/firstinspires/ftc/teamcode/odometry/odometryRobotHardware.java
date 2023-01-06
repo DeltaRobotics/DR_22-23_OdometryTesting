@@ -65,7 +65,7 @@ public class odometryRobotHardware
 
         //odometry init (use the motors objects that the odometers are pluged into)
         leftEncoder = motorLF;
-        rightEncoder = motorRF;
+        rightEncoder = motorLB;
         perpendicularEncoder = motorRB;
     }
 
