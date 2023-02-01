@@ -51,16 +51,27 @@ public class odometryMethodTest extends LinearOpMode{
 
         waitForStart();
 
-        odometry.goToPos(odometers, drive, 5, 0, 0, .15, .15, 1, 5, 0);
+/*
+        odometry.goToPos(odometers, drive, 18, 18, Math.toRadians(-90), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(0));
+        odometry.wait(1000, odometers);
+        odometry.goToPos(odometers, drive, 0, 0, Math.toRadians(0), .5, .5, .5, Math.toRadians(1), Math.toRadians(180));
+        odometry.wait(1000, odometers);
+        odometry.goToPos(odometers, drive, 0, 18, Math.toRadians(0), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(90));
+
+
+ */
+
+
+
 
         while (opModeIsActive()) {
 
-            robot.motorRF.setPower(((-gamepad1.right_stick_y - gamepad1.right_stick_x) - (-gamepad1.left_stick_x)));
-            robot.motorRB.setPower((-(-gamepad1.right_stick_x + gamepad1.right_stick_y) - (-gamepad1.left_stick_x)));
-            robot.motorLB.setPower(-((gamepad1.right_stick_y + gamepad1.right_stick_x) - (-gamepad1.left_stick_x)));
-            robot.motorLF.setPower(-(-gamepad1.right_stick_x + gamepad1.right_stick_y) - (gamepad1.left_stick_x));
+            robot.motorRF.setPower((gamepad1.right_stick_y + gamepad1.right_stick_x) + (gamepad1.left_stick_x));
+            robot.motorRB.setPower((gamepad1.right_stick_y - gamepad1.right_stick_x) + (gamepad1.left_stick_x));
+            robot.motorLB.setPower((gamepad1.right_stick_y + gamepad1.right_stick_x) - (gamepad1.left_stick_x));
+            robot.motorLF.setPower((gamepad1.right_stick_y - gamepad1.right_stick_x) - (gamepad1.left_stick_x));
 
-            odometry.refresh(odometers);
+            //odometry.refresh(odometers);
 
             telemetry.addData("X", odometry.GlobalX);
             telemetry.addData("Y", odometry.GlobalY);

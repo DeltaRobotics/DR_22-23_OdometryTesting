@@ -100,9 +100,9 @@ import com.qualcomm.robotcore.util.Range;
 public class odometryMethod extends LinearOpMode {
 
     //odometry constants (tune these)
-    double L = 9.5356;   //distance between left and right odometers (in inches)
+    double L = 9.501;   //distance between left and right odometers (in inches)
     double B = -1.8;   //distance from center of left/right encoders to the perpendicular encoder (in inches)
-    double R = .9869;   //wheel radius (in inches)
+    double R = .9787;   //wheel radius (in inches)
     double N = 8192;  //encoder ticks per revoluton
     double inPerTick = 2.0 * Math.PI * R / N;
 
@@ -142,7 +142,7 @@ public class odometryMethod extends LinearOpMode {
         //record a new encoder reading this loop
         currentRightPos = -odometers[0].getCurrentPosition();
         currentLeftPos = odometers[1].getCurrentPosition();
-        currentPerpendicularPos = -odometers[2].getCurrentPosition();
+        currentPerpendicularPos = odometers[2].getCurrentPosition();
 
         //find the delta encoder values of each encoder
         int dn1 = currentLeftPos - oldLeftPos;
@@ -155,10 +155,11 @@ public class odometryMethod extends LinearOpMode {
         double dy = inPerTick * (dn3 - (dn2 - dn1) * B / L);
 
         //add the robots movement this loop to the global location
-        double theta = (dtheta / 2.0);
-        GlobalX += dx * Math.cos(theta) - dy * Math.sin(theta);
-        GlobalY += dx * Math.sin(theta) + dy * Math.cos(theta);
+        //double theta = (dtheta / 2.0);
         GlobalHeading += dtheta;
+        GlobalX += dx * Math.cos(GlobalHeading) - dy * Math.sin(GlobalHeading);
+        GlobalY -= dx * Math.sin(GlobalHeading) + dy * Math.cos(GlobalHeading);
+
 
         //makes heading 180 to -180
         angleWrapRad(GlobalHeading);
@@ -216,45 +217,42 @@ public class odometryMethod extends LinearOpMode {
         //odometryRobotHardware robot = new odometryRobotHardware(hardwareMap);
 
         //while loop makes the code keep running till the desired location is reached. (within the accuracy constraints)
-        while(Math.abs(x-GlobalX) > moveAccuracy || Math.abs(y-GlobalY) > moveAccuracy || Math.abs(finalAngle - GlobalHeading) > angleAccuracy) {
+        while(Math.abs(x-GlobalX) > moveAccuracy || Math.abs(y-GlobalY) > moveAccuracy || Math.abs(angleWrapRad(finalAngle - GlobalHeading)) > angleAccuracy) {
 
             //update odometry location
             refresh(odometers);
 
             //math to calculate distances to the target
             double distanceToTarget = Math.hypot(x - GlobalX, y - GlobalY);
-            double absoluteAngleToTarget = Math.atan2(y - GlobalY, x - GlobalX);
-            double reletiveAngleToTarget = angleWrapRad(absoluteAngleToTarget - GlobalHeading);
-            double reletiveXToTarget = Math.cos(reletiveAngleToTarget) * distanceToTarget;
-            double reletiveYToTarget = Math.sin(reletiveAngleToTarget) * distanceToTarget;
+            double absoluteAngleToTarget = Math.atan2(x - GlobalX, y - GlobalY);
+            double reletiveAngleToTarget = angleWrapRad(absoluteAngleToTarget - GlobalHeading-Math.toRadians(90));
+            double reletiveXToTarget = -Math.cos(reletiveAngleToTarget) * distanceToTarget;
+            double reletiveYToTarget = -Math.sin(reletiveAngleToTarget) * distanceToTarget;
 
             //slow down ensures the robot does not over shoot the target
-            double slowDown = Range.clip(distanceToTarget / 5, -1, 1);
+            double slowDown = Range.clip(distanceToTarget / 3, -moveSpeed, moveSpeed);
 
             //calculate the vector powers for the mecanum math
-            double movementXpower = (reletiveXToTarget / (Math.abs(reletiveXToTarget) + Math.abs(reletiveYToTarget))) * moveSpeed;// * slowDown;
-            double movementYpower = (reletiveYToTarget / (Math.abs(reletiveYToTarget) + Math.abs(reletiveXToTarget))) * moveSpeed;// * slowDown;
+            double movementXpower = (reletiveXToTarget / (Math.abs(reletiveXToTarget) + Math.abs(reletiveYToTarget))) * slowDown;
+            double movementYpower = (reletiveYToTarget / (Math.abs(reletiveYToTarget) + Math.abs(reletiveXToTarget))) * slowDown;
 
             //when far away from the target the robot will point at the target to get there faster.
             //at the end of the movement the robot will begin moving toward the desired final angle
             double movementTurnPower;
-            if (distanceToTarget > 5) {
-                double reletiveTurnAngle = reletiveAngleToTarget + followAngle;
-                movementTurnPower = Range.clip(reletiveTurnAngle / Math.toRadians(10), -1, 1) * turnSpeed;
+            double reletiveTurnAngle;
+            if (distanceToTarget > 6) {
+                reletiveTurnAngle = angleWrapRad(reletiveAngleToTarget + followAngle);
+                movementTurnPower = Range.clip(reletiveTurnAngle / Math.toRadians(10), -turnSpeed, turnSpeed);
             } else {
-                movementTurnPower = ((finalAngle - GlobalHeading) / finalAngle) + .2;
+                reletiveTurnAngle = angleWrapRad(finalAngle - GlobalHeading);
+                movementTurnPower = Range.clip(reletiveTurnAngle / Math.toRadians(10), -turnSpeed, turnSpeed);
             }
 
             //set the motors to the correct powers to move toward the target
-            drive[0].setPower(((movementXpower - movementYpower) - (-movementTurnPower)));
-            drive[1].setPower((-(-movementYpower - movementXpower) - (-movementTurnPower)));
-            drive[2].setPower(-((-movementXpower + movementYpower) - (-movementTurnPower)));
-            drive[3].setPower(-(-movementYpower - movementXpower) - (movementTurnPower));
-
-            telemetry.addData("X", GlobalX);
-            telemetry.addData("Y", GlobalY);
-            telemetry.addData("H", GlobalHeading);
-            telemetry.update();
+            drive[0].setPower(((movementXpower - movementYpower) * moveSpeed) + (movementTurnPower * turnSpeed));
+            drive[1].setPower(((movementXpower + movementYpower) * moveSpeed) + (movementTurnPower * turnSpeed));
+            drive[2].setPower(((movementXpower - movementYpower) * moveSpeed) - (movementTurnPower * turnSpeed));
+            drive[3].setPower(((movementXpower + movementYpower) * moveSpeed) - (movementTurnPower * turnSpeed));
         }
 
         //at the end of the movement stop the motors
