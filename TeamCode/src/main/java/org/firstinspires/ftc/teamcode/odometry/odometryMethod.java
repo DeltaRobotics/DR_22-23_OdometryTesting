@@ -59,7 +59,9 @@ import com.qualcomm.robotcore.util.Range;
  * replace "odometryRobotHardware robot = new odometryRobotHardware(hardwareMap);" with the chosen hardware map
  *
  *
- **//* the blanks here refer to a program that will be made in the future*//**
+ **//* the blanks here refer to a program that will be made in the future*/
+
+/**
  * using ____, tune the values accordingly
  * 1. enter the radius of the odometer wheel as R
  *      to tune:
@@ -210,6 +212,11 @@ public class odometryMethod extends LinearOpMode {
      * for a better understanding of pure pursuit and if someone wants to improve this code, look into learning how the rest of gluten free's code works here:
      * https://www.youtube.com/watch?v=3l7ZNJ21wMo (5 parts)
      * the code below uses the code explains in parts 1 & 2
+     *
+     * for the arrays; odometers should be 0.left, 1.right, 2.perpendicular
+     * drive motors should be 0.Right front, 1.left front, 2.left back, 3.right back
+     *
+     * this version will loop until the desired location is reached and then move on
      */
     public void goToPos(DcMotor[] odometers, DcMotor[] drive, double x, double y, double finalAngle, double moveSpeed, double turnSpeed, double moveAccuracy, double angleAccuracy, double followAngle)
     {
@@ -263,53 +270,68 @@ public class odometryMethod extends LinearOpMode {
 
     }
 
-
     /**
-     * a simple version of goToPos used for testing
+     * this method is the key to using odometry
+     * by imputing a location to drive to the robot will calculate an efficient path to the target.
+     * if the robot is interfered with, it will recalculate and adjust accordingly
+     *
+     * at the beginning of the drive the robot will face the target (because mecanums are faster forward than sideways)
+     * when it gets within a set distance of the target it will begin turning toward its desired final orientation
+     *
+     * this code is pulled from the basis of pure pursuit.
+     * for a better understanding of pure pursuit and if someone wants to improve this code, look into learning how the rest of gluten free's code works here:
+     * https://www.youtube.com/watch?v=3l7ZNJ21wMo (5 parts)
+     * the code below uses the code explains in parts 1 & 2
+     *
+     * for the arrays; odometers should be 0.left, 1.right, 2.perpendicular
+     * drive motors should be 0.Right front, 1.left front, 2.left back, 3.right back
+     *
+     * this version will run one calaculation and needs to be used in a loop in the parent autonomus
      */
-
-    public void goToPosSimple(DcMotor[] odometers, double x, double y, double finalAngle, double moveAccuracy, double angleAccuracy, double followAngle)
+    public void goToPosSingle(DcMotor[] odometers, DcMotor[] drive, double x, double y, double finalAngle, double moveSpeed, double turnSpeed, double followAngle)
     {
         //bring in the encoder and motor objects
-        odometryRobotHardware robot = new odometryRobotHardware(hardwareMap);
+        //odometryRobotHardware robot = new odometryRobotHardware(hardwareMap);
 
         //while loop makes the code keep running till the desired location is reached. (within the accuracy constraints)
-        while(Math.abs(x-GlobalX) > moveAccuracy || Math.abs(y-GlobalY) > moveAccuracy || Math.abs(finalAngle - GlobalHeading) > angleAccuracy) {
 
-            //update odometry location
-            refresh(odometers);
+        //update odometry location
+        refresh(odometers);
 
-            //math to calculate distances to the target
-            double distanceToTarget = Math.hypot(x - GlobalX, y - GlobalY);
-            double absoluteAngleToTarget = Math.atan2(y - GlobalY, x - GlobalX);
-            double reletiveAngleToTarget = angleWrapRad(absoluteAngleToTarget - GlobalHeading);
-            double reletiveXToTarget = Math.cos(reletiveAngleToTarget) * distanceToTarget;
-            double reletiveYToTarget = Math.sin(reletiveAngleToTarget) * distanceToTarget;
+        //math to calculate distances to the target
+        double distanceToTarget = Math.hypot(x - GlobalX, y - GlobalY);
+        double absoluteAngleToTarget = Math.atan2(x - GlobalX, y - GlobalY);
+        double reletiveAngleToTarget = angleWrapRad(absoluteAngleToTarget - GlobalHeading-Math.toRadians(90));
+        double reletiveXToTarget = -Math.cos(reletiveAngleToTarget) * distanceToTarget;
+        double reletiveYToTarget = -Math.sin(reletiveAngleToTarget) * distanceToTarget;
 
-            //calculate the vector powers for the mecanum math
-            double movementXpower = (reletiveXToTarget / (Math.abs(reletiveXToTarget) + Math.abs(reletiveYToTarget)));
-            double movementYpower = (reletiveYToTarget / (Math.abs(reletiveYToTarget) + Math.abs(reletiveXToTarget)));
+        //slow down ensures the robot does not over shoot the target
+        double slowDown = Range.clip(distanceToTarget / 3, -moveSpeed, moveSpeed);
 
-            //when far away from the target the robot will point at the target to get there faster.
-            //at the end of the movement the robot will begin moving toward the desired final angle
-            double reletiveTurnAngle = reletiveAngleToTarget + followAngle;
-            double movementTurnPower = Range.clip(reletiveTurnAngle / Math.toRadians(10), -1, 1);
+        //calculate the vector powers for the mecanum math
+        double movementXpower = (reletiveXToTarget / (Math.abs(reletiveXToTarget) + Math.abs(reletiveYToTarget))) * slowDown;
+        double movementYpower = (reletiveYToTarget / (Math.abs(reletiveYToTarget) + Math.abs(reletiveXToTarget))) * slowDown;
 
-
-            //set the motors to the correct powers to move toward the target
-            robot.motorRF.setPower((-movementXpower - movementYpower) - (-movementTurnPower));
-            robot.motorRB.setPower(-(-movementYpower + movementXpower) - (-movementTurnPower));
-            robot.motorLB.setPower(-(movementXpower + movementYpower) - (-movementTurnPower));
-            robot.motorLF.setPower(-(-movementYpower + movementXpower) - (movementTurnPower));
+        //when far away from the target the robot will point at the target to get there faster.
+        //at the end of the movement the robot will begin moving toward the desired final angle
+        double movementTurnPower;
+        double reletiveTurnAngle;
+        if (distanceToTarget > 6) {
+            reletiveTurnAngle = angleWrapRad(reletiveAngleToTarget + followAngle);
+            movementTurnPower = Range.clip(reletiveTurnAngle / Math.toRadians(10), -turnSpeed, turnSpeed);
+        } else {
+            reletiveTurnAngle = angleWrapRad(finalAngle - GlobalHeading);
+            movementTurnPower = Range.clip(reletiveTurnAngle / Math.toRadians(10), -turnSpeed, turnSpeed);
         }
 
-        //at the end of the movement stop the motors
-        robot.motorRF.setPower(0);
-        robot.motorRB.setPower(0);
-        robot.motorLB.setPower(0);
-        robot.motorLF.setPower(0);
+        //set the motors to the correct powers to move toward the target
+        drive[0].setPower(((movementXpower - movementYpower) * moveSpeed) + (movementTurnPower * turnSpeed));
+        drive[1].setPower(((movementXpower + movementYpower) * moveSpeed) + (movementTurnPower * turnSpeed));
+        drive[2].setPower(((movementXpower - movementYpower) * moveSpeed) - (movementTurnPower * turnSpeed));
+        drive[3].setPower(((movementXpower + movementYpower) * moveSpeed) - (movementTurnPower * turnSpeed));
 
     }
+
 
 
     //only here to make linear opMode a valid extention
