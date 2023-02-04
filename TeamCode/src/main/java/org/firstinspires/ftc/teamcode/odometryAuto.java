@@ -52,88 +52,30 @@ public class odometryAuto extends LinearOpMode{
 
         waitForStart();
 
-        odometry.goToPos(odometers, drive, -15, 5, Math.toRadians(-90), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(0));
-        odometry.wait(1000, odometers);//drop
-        odometry.goToPos(odometers, drive, -15, 0, Math.toRadians(-90), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(0));
-        odometry.goToPos(odometers, drive, -50, 5, Math.toRadians(90), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(0));
-        odometry.goToPos(odometers, drive, -50, -20, Math.toRadians(90), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(0));
-        odometry.wait(1000, odometers);//grab
-
-        odometry.goToPos(odometers, drive, -45, -20, Math.toRadians(135), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(-90));
-        odometry.wait(2000, odometers);//flip and place
+        redStart(odometry, odometers, drive);
 
 
     }
 
     //copy paste code from these into thing
-    public void redStart(){
-        odometryRobotHardware robot = new odometryRobotHardware(hardwareMap);
-        odometryMethod odometry = new odometryMethod();
-
-        DcMotor[] odometers = new DcMotor[3];
-        {
-            odometers[0] = robot.leftEncoder;
-            odometers[1] = robot.rightEncoder;
-            odometers[2] = robot.perpendicularEncoder;
-        }
-
-        DcMotor[] drive = new DcMotor[4];
-        {
-            drive[0] = robot.motorRF;
-            drive[1] = robot.motorRB;
-            drive[2] = robot.motorLB;
-            drive[3] = robot.motorLF;
-        }
+    public void redStart(odometryMethod odometry, DcMotor[] odometers, DcMotor[] drive){
 
         odometry.goToPos(odometers, drive, -15, 5, Math.toRadians(-90), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(0));
         odometry.wait(1000, odometers);//drop
-        odometry.goToPos(odometers, drive, -15, 0, Math.toRadians(-90), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(0));
-        odometry.goToPos(odometers, drive, -50, 5, Math.toRadians(90), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(0));
+        odometry.goToPos(odometers, drive, -50, 5, Math.toRadians(90), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(180));
         odometry.goToPos(odometers, drive, -50, -20, Math.toRadians(90), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(0));
         odometry.wait(1000, odometers);//grab
-    }
-    public void red4(){
-        odometryRobotHardware robot = new odometryRobotHardware(hardwareMap);
-        odometryMethod odometry = new odometryMethod();
 
-        DcMotor[] odometers = new DcMotor[3];
-        {
-            odometers[0] = robot.leftEncoder;
-            odometers[1] = robot.rightEncoder;
-            odometers[2] = robot.perpendicularEncoder;
-        }
-
-        DcMotor[] drive = new DcMotor[4];
-        {
-            drive[0] = robot.motorRF;
-            drive[1] = robot.motorRB;
-            drive[2] = robot.motorLB;
-            drive[3] = robot.motorLF;
-        }
-
-        odometry.goToPos(odometers, drive, -50, -17, Math.toRadians(90), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(-90));
-        odometry.goToPos(odometers, drive, -45, -17, Math.toRadians(90), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(-90));
-        odometry.wait(2000, odometers);
     }
 
-    public void blueStart(){
-        odometryRobotHardware robot = new odometryRobotHardware(hardwareMap);
-        odometryMethod odometry = new odometryMethod();
+    public void red4(odometryMethod odometry, DcMotor[] odometers, DcMotor[] drive){
 
-        DcMotor[] odometers = new DcMotor[3];
-        {
-            odometers[0] = robot.leftEncoder;
-            odometers[1] = robot.rightEncoder;
-            odometers[2] = robot.perpendicularEncoder;
-        }
+        odometry.goToPos(odometers, drive, -45, -20, Math.toRadians(135), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(-90));
+        odometry.wait(2000, odometers);//flip and place
 
-        DcMotor[] drive = new DcMotor[4];
-        {
-            drive[0] = robot.motorRF;
-            drive[1] = robot.motorRB;
-            drive[2] = robot.motorLB;
-            drive[3] = robot.motorLF;
-        }
+    }
+
+    public void blueStart(odometryMethod odometry, DcMotor[] odometers, DcMotor[] drive){
 
         odometry.goToPos(odometers, drive, -15, 5, Math.toRadians(90), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(0));
         odometry.wait(1000, odometers);//drop
@@ -141,22 +83,11 @@ public class odometryAuto extends LinearOpMode{
         odometry.goToPos(odometers, drive, -50, 10, Math.toRadians(-90), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(0));
         odometry.goToPos(odometers, drive, -50, -20, Math.toRadians(-90), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(0));
         odometry.wait(1000, odometers);//grab
+
     }
 
+    public void setFSMVars(int v4bPos, int height){
 
-
-
-
-
-    //example;
-    public void example(odometryMethod odometry, DcMotor[] odometers, DcMotor[] drive){
-
-        odometry.goToPos(odometers, drive, -15, 5, Math.toRadians(-90), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(0));
-        odometry.wait(1000, odometers);//drop
-        odometry.goToPos(odometers, drive, -15, 0, Math.toRadians(-90), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(0));
-        odometry.goToPos(odometers, drive, -50, 5, Math.toRadians(90), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(0));
-        odometry.goToPos(odometers, drive, -50, -20, Math.toRadians(90), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(0));
-        odometry.wait(1000, odometers);//grab
     }
 
 
