@@ -17,10 +17,6 @@ import org.firstinspires.ftc.teamcode.odometry.odometryRobotHardware;
 
 public class odometryAuto extends LinearOpMode{
 
-    double speed = 1;
-    double zScale = 1;
-
-
 
     public void runOpMode() throws InterruptedException {
 
@@ -146,4 +142,28 @@ public class odometryAuto extends LinearOpMode{
         odometry.goToPos(odometers, drive, -50, -20, Math.toRadians(-90), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(0));
         odometry.wait(1000, odometers);//grab
     }
+
+
+
+
+
+
+    //example;
+    public void example(odometryMethod odometry, DcMotor[] odometers, DcMotor[] drive){
+
+        odometry.goToPos(odometers, drive, -15, 5, Math.toRadians(-90), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(0));
+        odometry.wait(1000, odometers);//drop
+        odometry.goToPos(odometers, drive, -15, 0, Math.toRadians(-90), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(0));
+        odometry.goToPos(odometers, drive, -50, 5, Math.toRadians(90), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(0));
+        odometry.goToPos(odometers, drive, -50, -20, Math.toRadians(90), 0.5, .5, .5, Math.toRadians(1), Math.toRadians(0));
+        odometry.wait(1000, odometers);//grab
+    }
+
+
+    //lift FSM method
+
+    //start lift method
+    //inputs of v4b pos, height, junction height
+    //set positions accordingly and set lift state to lift
+    //call this method before loops for lift FSM
 }
