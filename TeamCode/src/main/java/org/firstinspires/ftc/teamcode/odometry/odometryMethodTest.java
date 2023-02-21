@@ -34,12 +34,12 @@ public class odometryMethodTest extends LinearOpMode{
 
         odometryMethod odometry = new odometryMethod();
 
-        DcMotor[] odometers = new DcMotor[3];
-        {
-            odometers[0] = robot.leftEncoder;
-            odometers[1] = robot.rightEncoder;
-            odometers[2] = robot.perpendicularEncoder;
-        }
+        //DcMotor[] odometers = new DcMotor[3];
+        //{
+        //    odometers[0] = robot.leftEncoder;
+        //    odometers[1] = robot.rightEncoder;
+        //    odometers[2] = robot.perpendicularEncoder;
+        //}
 
         DcMotor[] drive = new DcMotor[4];
         {
@@ -73,9 +73,9 @@ public class odometryMethodTest extends LinearOpMode{
 
             //odometry.refresh(odometers);
 
-            telemetry.addData("X", odometry.GlobalX);
-            telemetry.addData("Y", odometry.GlobalY);
-            telemetry.addData("Heading", Math.toDegrees(odometry.GlobalHeading));
+            //telemetry.addData("X", odometry.GlobalX);
+            //telemetry.addData("Y", odometry.GlobalY);
+            //telemetry.addData("Heading", Math.toDegrees(odometry.GlobalHeading));
 
             telemetry.addData("motorRFPower", robot.motorRF.getPower());
             telemetry.addData("motorRBPower", robot.motorRB.getPower());
